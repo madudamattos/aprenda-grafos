@@ -9,10 +9,12 @@ const PseudocodeComponent = ({routeName, step=0}) => {
 
     // Função para retornar o intervalo de linhas selecionadas conforme o step
     const getSelectedRange = () => {
-      if (step === 1) return [1, 9];
-      if (step === 2) return [10, 12];
-      if (step === 3) return [13, 18];
-      if (step === 4) return [19];
+      if(routeName == 'bfs'){
+        if (step === 1) return [1, 9];
+        if (step === 2) return [10, 12];
+        if (step === 3) return [13, 18];
+        if (step === 4) return [19];
+      }
       return [null, null];
     };
 

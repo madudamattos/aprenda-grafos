@@ -100,11 +100,7 @@ export const useGraphManager = () => {
       if (data.finished) {
         setStep(4); // Define step como 4 quando finished
         stopAnimation();
-        // Reseta todos os nós para o estado DEFAULT
-        nodes.forEach(node => {
-          graph.setNodeState(node.id, NodeState.DEFAULT);
-        });
-        updateNodesState();
+        // NÃO reseta os nós - eles devem permanecer marrons (visitados)
       }
       
       return data;
@@ -152,6 +148,7 @@ export const useGraphManager = () => {
       setIntervalId(null);
     }
     setIsAnimating(false);
+    console.log('Animação parada');
   };
 
   // Função para executar próximo passo manualmente
@@ -162,22 +159,26 @@ export const useGraphManager = () => {
     await executeStep();
   };
 
-  // Função para reiniciar a animação
-  const restartAnimation = async () => {
+  // Função para resetar o estado do grafo após animação
+  const restartAnimation = () => {
+    // Para a animação se estiver rodando
     stopAnimation();
+    
+    // Reseta o step para 0
     setStep(0);
     
     // Reseta o estado dos nós para DEFAULT
-    nodes.forEach(node => {
+    const currentNodes = graph.getAllNodes();
+    currentNodes.forEach(node => {
       graph.setNodeState(node.id, NodeState.DEFAULT);
     });
     updateNodesState();
     
     // Reseta o currentNode no grafo
     graph.setCurrentNode(null);
+    setSelectedNode(null);
     
-    // Inicia novamente
-    await startAnimation('bfs');
+    console.log('Estado do grafo resetado - step: 0, nós: DEFAULT, seleção: limpa');
   };
 
   const handleSelectNode = (nodeId) => {
@@ -196,6 +197,8 @@ export const useGraphManager = () => {
     
     // Atualiza o estado dos nós na interface
     updateNodesState();
+    
+    console.log(`Nó selecionado: ${nodeId}, currentNode no grafo: ${graph.currentNode}`);
   };
 
   // Atualiza o estado dos nós quando o grafo muda
@@ -223,17 +226,24 @@ export const useGraphManager = () => {
   // Manipula clique em um nó
   const handleNodeClick = (nodeId) => {
     hideContextMenu();
+    
+    // Se não há nó selecionado, seleciona o nó clicado
     if (selectedNode === null) {
       handleSelectNode(nodeId);
-      // console.log(`Nó ${nodeId} selecionado`);
-    } else if (selectedNode === nodeId) {
+      console.log(`Nó ${nodeId} selecionado`);
+    } 
+    // Se o nó clicado já está selecionado, deseleciona
+    else if (selectedNode === nodeId) {
       handleSelectNode(null);
-      // console.log(`Nó ${nodeId} deselecionado`);
-    } else {
+      console.log(`Nó ${nodeId} deselecionado`);
+    } 
+    // Se há um nó selecionado e clicou em outro, conecta os nós
+    else {
       // Conecta criando aresta direcionada selectedNode -> nodeId
       const edge = graph.addEdge(selectedNode, nodeId, { weight: null, directed: false });
       if (edge) {
         updateNodesState();
+        console.log(`Aresta criada: ${selectedNode} -> ${nodeId}`);
       } else {
         console.log(`Falha ao conectar nós ${selectedNode} -> ${nodeId} (pode já existir uma aresta)`);
       }
@@ -241,7 +251,7 @@ export const useGraphManager = () => {
       // Após criar a aresta, adiciona o peso
       setEditingEdgeId(edge.id);
 
-      //deseleciona o nó
+      // Deseleciona o nó
       handleSelectNode(null);
     }
   };
