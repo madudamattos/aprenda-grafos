@@ -98,7 +98,13 @@ export const useGraphManager = () => {
       
       // Verifica se o algoritmo terminou
       if (data.finished) {
+        setStep(4); // Define step como 4 quando finished
         stopAnimation();
+        // Reseta todos os nós para o estado DEFAULT
+        nodes.forEach(node => {
+          graph.setNodeState(node.id, NodeState.DEFAULT);
+        });
+        updateNodesState();
       }
       
       return data;
@@ -160,26 +166,36 @@ export const useGraphManager = () => {
   const restartAnimation = async () => {
     stopAnimation();
     setStep(0);
+    
     // Reseta o estado dos nós para DEFAULT
     nodes.forEach(node => {
       graph.setNodeState(node.id, NodeState.DEFAULT);
     });
     updateNodesState();
     
+    // Reseta o currentNode no grafo
+    graph.setCurrentNode(null);
+    
     // Inicia novamente
     await startAnimation('bfs');
   };
 
   const handleSelectNode = (nodeId) => {
+    // Se há um nó selecionado, reseta seu estado para DEFAULT
     if (selectedNode !== null) {
       graph.setNodeState(selectedNode, NodeState.DEFAULT);
     }
+    
+    // Se um novo nó foi selecionado, define seu estado como SELECTED
     if (nodeId !== null) {
       graph.setNodeState(nodeId, NodeState.SELECTED);
     }
 
     setSelectedNode(nodeId);
     graph.setCurrentNode(nodeId);
+    
+    // Atualiza o estado dos nós na interface
+    updateNodesState();
   };
 
   // Atualiza o estado dos nós quando o grafo muda
@@ -255,9 +271,22 @@ export const useGraphManager = () => {
 
   // Limpa o grafo
   const handleClearGraph = () => {
+    // Para a animação se estiver rodando
+    if (isAnimating) {
+      stopAnimation();
+    }
+    
+    // Reseta o step
+    setStep(0);
+    
+    // Limpa o grafo
     graph.clear();
     setNodes([]);
     handleSelectNode(null);
+    
+    // Reseta o currentNode no grafo
+    graph.setCurrentNode(null);
+    
     console.log('Grafo limpo');
   };
 

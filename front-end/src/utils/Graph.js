@@ -302,17 +302,19 @@ class Graph {
   importFromJSONAPI(data) {
     this.clear();
     const graphData = data.graph;
+    
     // Adiciona nós
     (graphData.nodes || []).forEach(nodeData => {
       const node = {
         id: nodeData.id,
-        state: nodeData.state,
+        state: nodeData.state || NodeState.DEFAULT, // Garante que sempre tenha um estado
         weight: nodeData.weight,
         x: nodeData.x,
         y: nodeData.y
       };
       this.nodes.set(nodeData.id, node);
     });
+    
     // Adiciona arestas
     (graphData.edges || []).forEach(edgeData => {
       const edge = {
@@ -324,6 +326,7 @@ class Graph {
       };
       this.edges.set(edge.id, edge);
     });
+    
     // Atualiza currentNode, finished e step
     this.currentNode = data.current_node ?? null;
     this.finished = data.finished ?? false;
